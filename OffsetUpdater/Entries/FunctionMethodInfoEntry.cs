@@ -1,6 +1,6 @@
 ﻿namespace OffsetUpdater.Entries;
 
-internal class FunctionMethodInfoEntry : OffsetEntry
+internal sealed class FunctionMethodInfoEntry : OffsetEntry
 {
 
     public override bool NamespaceExists() => false;
