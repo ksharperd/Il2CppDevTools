@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OffsetUpdater\OffsetUpdater.csproj" />
+  <Project Path="TableConverter\TableConverter.csproj" />
+</Solution>
