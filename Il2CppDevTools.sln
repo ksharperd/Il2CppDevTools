@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34814.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnumGenerator", "EnumGenerator\EnumGenerator.csproj", "{6CEC3D81-6AFA-94FD-63AE-7FBCC089F99A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OffsetUpdater", "OffsetUpdater\OffsetUpdater.csproj", "{83E796AD-49BE-012B-2876-3D34CD9A1F7A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableConverter", "TableConverter\TableConverter.csproj", "{F96078E8-0AB7-B5AE-8541-D6ECCE662F0A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6CEC3D81-6AFA-94FD-63AE-7FBCC089F99A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CEC3D81-6AFA-94FD-63AE-7FBCC089F99A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CEC3D81-6AFA-94FD-63AE-7FBCC089F99A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CEC3D81-6AFA-94FD-63AE-7FBCC089F99A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83E796AD-49BE-012B-2876-3D34CD9A1F7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E796AD-49BE-012B-2876-3D34CD9A1F7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83E796AD-49BE-012B-2876-3D34CD9A1F7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E796AD-49BE-012B-2876-3D34CD9A1F7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F96078E8-0AB7-B5AE-8541-D6ECCE662F0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F96078E8-0AB7-B5AE-8541-D6ECCE662F0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F96078E8-0AB7-B5AE-8541-D6ECCE662F0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F96078E8-0AB7-B5AE-8541-D6ECCE662F0A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
