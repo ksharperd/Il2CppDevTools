@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace EnumGenerator;
@@ -63,6 +64,7 @@ internal class Table
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Span<string> GetEntries(string header)
     {
         return CollectionsMarshal.AsSpan(_entries[header]);
