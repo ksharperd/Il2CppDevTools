@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="EnumGenerator\EnumGenerator.csproj" Type="Classic C#" />
   <Project Path="OffsetUpdater\OffsetUpdater.csproj" />
   <Project Path="TableConverter\TableConverter.csproj" />
 </Solution>
