@@ -2,23 +2,24 @@
 
 namespace EnumGenerator.Tables;
 
-internal sealed class CharacterSkillTable : Table
+internal sealed class SkillTable : Table
 {
 
     private readonly UpgradeDesTable _upgradeDesTable;
     private readonly Dictionary<string, List<string>> _characterSkills;
     public readonly int TotalSkills;
 
-    public CharacterSkillTable(string tableFile, string upgradeDesTable) : base(tableFile, "SkillGroupId[9]")
+    public SkillTable(string tableFile, string upgradeDesTable) : base(tableFile, "SkillGroupId[9]")
     {
         _upgradeDesTable = new(upgradeDesTable);
         _characterSkills = [];
+        var endByTarget = _entries.Keys.Last().Contains("SkillGroupId");
         for (int i = 0; i < LineCount; i++)
         {
             var line = GetLine(i);
             var characterId = line[0];
             var skillIds = new List<string>();
-            for (int j = RowCount - 1; j >= 1; j -= 2)
+            for (int j = RowCount - (endByTarget ? 1 : 2); j >= 1; j -= 2)
             {
                 var id = line[j];
                 if (string.IsNullOrEmpty(id))

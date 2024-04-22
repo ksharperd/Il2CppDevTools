@@ -31,8 +31,12 @@ internal class Program
         var equipTableFile = Path.Combine(tableDir, "Share", "Equip", "Equip.tab");
         var fashionTableFile = Path.Combine(tableDir, "Share", "Fashion", "Fashion.tab");
         var weaponFashionTableFile = Path.Combine(tableDir, "Client", "WeaponFashion", "WeaponFashionRes.tab");
+        // Character Skills
         var characterSkillTableFile = Path.Combine(tableDir, "Share", "Character", "Skill", "CharacterSkill.tab");
         var characterSkillPoolTableFile = Path.Combine(tableDir, "Client", "Character", "Skill", "CharacterSkillUpgradeDes.tab");
+        // Enhance Skills
+        var enhanceSkillTableFile = Path.Combine(tableDir, "Share", "Character", "EnhanceSkill", "EnhanceSkill.tab");
+        var enhanceSkillPoolTableFile = Path.Combine(tableDir, "Client", "Character", "EnhanceSkill", "EnhanceSkillUpgradeDes.tab");
         var output = args[1];
 
         ThrowIfFileNotFound(characterTableFile);
@@ -75,33 +79,30 @@ internal class Program
         }
         var weaponFashionNames = weaponFashionNamesArray.AsSpan();
 
-        var characterSkillTable = new CharacterSkillTable(characterSkillTableFile, characterSkillPoolTableFile);
-        var characterSkillIdsList = new List<string>(characterSkillTable.TotalSkills);
-        var characterSkillNamesList = new List<string>(characterSkillTable.TotalSkills);
-        foreach (var characterId in characterIds)
-        {
-            var skillIds = characterSkillTable.GetSkillsByCharacterId(characterId);
-            characterSkillIdsList.AddRange(skillIds);
-            foreach (var skillId in skillIds)
-            {
-                characterSkillNamesList.Add($"{characterNames[characterIds.IndexOf(characterId)]}_{characterSkillTable[skillId]}");
-            }
-        }
+        var characterSkillTable = new SkillTable(characterSkillTableFile, characterSkillPoolTableFile);
+        var (characterSkillIdsList, characterSkillNamesList) = HandleSkillTable(characterSkillTable, ref characterNames, ref characterIds);
         var characterSkillIds = CollectionsMarshal.AsSpan(characterSkillIdsList);
         var characterSkillNames = CollectionsMarshal.AsSpan(characterSkillNamesList);
 
-        var characterHeader = ConvertToHeader("Character", ref characterNames, ref characterIds);
-        var equipHeader = ConvertToHeader("Equip", ref equipNames, ref equipIds);
-        var fashionHeader = ConvertToHeader("Fashion", ref fashionNames, ref fashionIds);
-        var weaponFashionHeader = ConvertToHeader("WeaponFashion", ref weaponFashionNames, ref weaponFashionIds);
-        var characterSkillHeader = ConvertToHeader("CharacterSkill", ref characterSkillNames, ref characterSkillIds);
+        var enhanceSkillTable = new SkillTable(enhanceSkillTableFile, enhanceSkillPoolTableFile);
+        var (enhanceSkillIdsList, enhanceSkillNamesList) = HandleSkillTable(enhanceSkillTable, ref characterNames, ref characterIds);
+        var enhanceSkillIds = CollectionsMarshal.AsSpan(enhanceSkillIdsList);
+        var enhanceSkillNames = CollectionsMarshal.AsSpan(enhanceSkillNamesList);
+
+        var characterEnum = ConvertToCppEnum("Character", ref characterNames, ref characterIds);
+        var equipEnum = ConvertToCppEnum("Equip", ref equipNames, ref equipIds);
+        var fashionEnum = ConvertToCppEnum("Fashion", ref fashionNames, ref fashionIds);
+        var weaponFashionEnum = ConvertToCppEnum("WeaponFashion", ref weaponFashionNames, ref weaponFashionIds);
+        var characterSkillEnum = ConvertToCppEnum("CharacterSkill", ref characterSkillNames, ref characterSkillIds);
+        var enhanceSkillEnum = ConvertToCppEnum("EnhanceSkill", ref enhanceSkillNames, ref enhanceSkillIds);
 
         using var writer = new StreamWriter(File.Open(output, FileMode.Create, FileAccess.Write, FileShare.Read), new UTF8Encoding(false), leaveOpen: false);
-        WriteHeader(writer, characterHeader);
-        WriteHeader(writer, equipHeader);
-        WriteHeader(writer, fashionHeader);
-        WriteHeader(writer, weaponFashionHeader);
-        WriteHeader(writer, characterSkillHeader, false);
+        WriteHeader(writer, characterEnum);
+        WriteHeader(writer, equipEnum);
+        WriteHeader(writer, fashionEnum);
+        WriteHeader(writer, weaponFashionEnum);
+        WriteHeader(writer, characterSkillEnum);
+        WriteHeader(writer, enhanceSkillEnum, false);
 
         Console.WriteLine($"Generate success.");
     }
@@ -115,7 +116,7 @@ internal class Program
         }
     }
 
-    private static string ConvertToHeader(string name, ref Span<string> leftExp, ref Span<string> rightExp, string? inheritClass = "uint32_t")
+    private static string ConvertToCppEnum(string name, ref Span<string> leftExp, ref Span<string> rightExp, string? inheritClass = "uint32_t")
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine($"enum class {name}{(inheritClass is not null ? " : " + inheritClass : "")}\n{{");
@@ -133,6 +134,22 @@ internal class Program
 
         Console.WriteLine($"Processed {name}");
         return stringBuilder.ToString();
+    }
+
+    private static (List<string>, List<string>) HandleSkillTable(SkillTable skillTable, ref Span<string> namesTable, ref Span<string> idsTable)
+    {
+        var skillIdsList = new List<string>(skillTable.TotalSkills);
+        var skillNamesList = new List<string>(skillTable.TotalSkills);
+        foreach (var characterId in idsTable)
+        {
+            var skillIds = skillTable.GetSkillsByCharacterId(characterId);
+            skillIdsList.AddRange(skillIds);
+            foreach (var skillId in skillIds)
+            {
+                skillNamesList.Add($"{namesTable[idsTable.IndexOf(characterId)]}_{skillTable[skillId]}");
+            }
+        }
+        return (skillIdsList, skillNamesList);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
