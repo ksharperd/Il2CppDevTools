@@ -1,5 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+
+using EnumGenerator.Tables;
 
 namespace EnumGenerator;
 
@@ -8,38 +11,49 @@ internal class Program
 
     static void Main(string[] args)
     {
-        if (args.Length < 5)
+        if (args.Length < 2)
         {
-            Console.WriteLine("Need five args.");
+            Console.WriteLine("Need two args.");
             Console.WriteLine();
             Console.WriteLine("Usage:");
-            Console.WriteLine($"    EnumGenerator.exe [character table file] [equip table file] [fashion table file] [weapon fashion table file] [output header file]");
+            Console.WriteLine($"    EnumGenerator.exe [table dir] [output header file]");
             return;
         }
 
-        var characterTableFile = args[0];
-        var equipTableFile = args[1];
-        var fashionTableFile = args[2];
-        var weaponFashionTableFile = args[3];
-        var output = args[4];
+        var tableDir = args[0];
+        if (!Directory.Exists(tableDir))
+        {
+            Console.WriteLine("Table directory not found.");
+            return;
+        }
+
+        var characterTableFile = Path.Combine(tableDir, "Share", "Character", "Character.tab");
+        var equipTableFile = Path.Combine(tableDir, "Share", "Equip", "Equip.tab");
+        var fashionTableFile = Path.Combine(tableDir, "Share", "Fashion", "Fashion.tab");
+        var weaponFashionTableFile = Path.Combine(tableDir, "Client", "WeaponFashion", "WeaponFashionRes.tab");
+        var characterSkillTableFile = Path.Combine(tableDir, "Share", "Character", "Skill", "CharacterSkill.tab");
+        var characterSkillPoolTableFile = Path.Combine(tableDir, "Client", "Character", "Skill", "CharacterSkillUpgradeDes.tab");
+        var output = args[1];
 
         ThrowIfFileNotFound(characterTableFile);
         ThrowIfFileNotFound(equipTableFile);
         ThrowIfFileNotFound(fashionTableFile);
         ThrowIfFileNotFound(weaponFashionTableFile);
+        ThrowIfFileNotFound(characterSkillTableFile);
+        ThrowIfFileNotFound(characterSkillPoolTableFile);
 
         var characterTable = new Table(characterTableFile, "StoryChapterId");
-        var characterIds = characterTable.GetEntries("Id");
-        var characterNames = characterTable.GetEntries("LogName");
+        var characterIds = characterTable.GetRow("Id");
+        var characterNames = characterTable.GetRow("LogName");
 
         var equipTable = new Table(equipTableFile, "DefaultLock");
-        var equipIds = equipTable.GetEntries("Id");
-        var equipNames = equipTable.GetEntries("LogName");
+        var equipIds = equipTable.GetRow("Id");
+        var equipNames = equipTable.GetRow("LogName");
 
         var fashionTable = new Table(fashionTableFile, "Series");
-        var fashionIds = fashionTable.GetEntries("Id");
-        var fashionCharacterIds = fashionTable.GetEntries("CharacterId");
-        var fashionRawNames = fashionTable.GetEntries("Name");
+        var fashionIds = fashionTable.GetRow("Id");
+        var fashionCharacterIds = fashionTable.GetRow("CharacterId");
+        var fashionRawNames = fashionTable.GetRow("Name");
         var fashionNamesCnt = fashionRawNames.Length;
         var fashionNamesArray = new string[fashionNamesCnt];
         for (var i = 0; i < fashionNamesCnt; i++)
@@ -49,9 +63,9 @@ internal class Program
         var fashionNames = fashionNamesArray.AsSpan();
 
         var weaponFashionTable = new Table(weaponFashionTableFile, "ResonanceModelTransId3[2]");
-        var weaponFashionIds = weaponFashionTable.GetEntries("Id");
-        var weaponFashionRawNames = weaponFashionTable.GetEntries("Name");
-        var weaponFashionRawDescriptions = weaponFashionTable.GetEntries("Description");
+        var weaponFashionIds = weaponFashionTable.GetRow("Id");
+        var weaponFashionRawNames = weaponFashionTable.GetRow("Name");
+        var weaponFashionRawDescriptions = weaponFashionTable.GetRow("Description");
         var weaponFashionNamesCnt = weaponFashionRawNames.Length;
         var weaponFashionNamesArray = new string[weaponFashionNamesCnt];
         for (var i = 0; i < weaponFashionNamesCnt; i++)
@@ -61,19 +75,35 @@ internal class Program
         }
         var weaponFashionNames = weaponFashionNamesArray.AsSpan();
 
+        var characterSkillTable = new CharacterSkillTable(characterSkillTableFile, characterSkillPoolTableFile);
+        var characterSkillIdsList = new List<string>(characterSkillTable.TotalSkills);
+        var characterSkillNamesList = new List<string>(characterSkillTable.TotalSkills);
+        foreach (var characterId in characterIds)
+        {
+            var skillIds = characterSkillTable.GetSkillsByCharacterId(characterId);
+            characterSkillIdsList.AddRange(skillIds);
+            foreach (var skillId in skillIds)
+            {
+                characterSkillNamesList.Add($"{characterNames[characterIds.IndexOf(characterId)]}_{characterSkillTable[skillId]}");
+            }
+        }
+        var characterSkillIds = CollectionsMarshal.AsSpan(characterSkillIdsList);
+        var characterSkillNames = CollectionsMarshal.AsSpan(characterSkillNamesList);
+
         var characterHeader = ConvertToHeader("Character", ref characterNames, ref characterIds);
         var equipHeader = ConvertToHeader("Equip", ref equipNames, ref equipIds);
         var fashionHeader = ConvertToHeader("Fashion", ref fashionNames, ref fashionIds);
         var weaponFashionHeader = ConvertToHeader("WeaponFashion", ref weaponFashionNames, ref weaponFashionIds);
+        var characterSkillHeader = ConvertToHeader("CharacterSkill", ref characterSkillNames, ref characterSkillIds);
 
         using var writer = new StreamWriter(File.Open(output, FileMode.Create, FileAccess.Write, FileShare.Read), new UTF8Encoding(false), leaveOpen: false);
-        writer.WriteLine(characterHeader);
-        writer.WriteLine();
-        writer.WriteLine(equipHeader);
-        writer.WriteLine();
-        writer.WriteLine(fashionHeader);
-        writer.WriteLine();
-        writer.WriteLine(weaponFashionHeader);
+        WriteHeader(writer, characterHeader);
+        WriteHeader(writer, equipHeader);
+        WriteHeader(writer, fashionHeader);
+        WriteHeader(writer, weaponFashionHeader);
+        WriteHeader(writer, characterSkillHeader, false);
+
+        Console.WriteLine($"Generate success.");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -100,7 +130,19 @@ internal class Program
             stringBuilder.AppendLine($"\t{left} = {rightExp[i]},");
         }
         stringBuilder.Append("};");
+
+        Console.WriteLine($"Processed {name}");
         return stringBuilder.ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WriteHeader(StreamWriter writer, string content, bool writeNewLine = true)
+    {
+        writer.WriteLine(content);
+        if (writeNewLine)
+        {
+            writer.WriteLine();
+        }
     }
 
 }

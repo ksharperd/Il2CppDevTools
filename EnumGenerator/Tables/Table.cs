@@ -1,18 +1,18 @@
-﻿using System.Buffers;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace EnumGenerator;
+namespace EnumGenerator.Tables;
 
-[DebuggerDisplay("Name = {_name}, HeaderCount = {_entries.Count}")]
+[DebuggerDisplay("Name = {_name}, RowCount = {RowCount}, LineCount = {LineCount}")]
 internal class Table
 {
 
-    private static readonly SearchValues<char> _replaceChars = SearchValues.Create("·.- &");
+    protected readonly Dictionary<string, List<string>> _entries;
+    protected readonly string _name;
 
-    private readonly Dictionary<string, List<string>> _entries;
-    private readonly string _name;
+    public readonly int RowCount;
+    public readonly int LineCount;
 
     public Table(string tableFile, string? requiredName)
     {
@@ -42,32 +42,53 @@ internal class Table
             }
         }
 
+        RowCount = _entries.Count;
+        LineCount = 0;
+
         var maxIndex = headers.Length;
-        var placeHolder = '_';
         foreach (var line in lines)
         {
             if (string.IsNullOrWhiteSpace(line))
             {
                 continue;
             }
+            ++LineCount;
             var rawValues = line.Split('\t');
             for (int i = 0; i < maxIndex; i++)
             {
                 ref var values = ref CollectionsMarshal.GetValueRefOrNullRef(_entries, headers[i])!;
                 var value = rawValues[i];
-                if (value.AsSpan().IndexOfAny(_replaceChars) != -1)
+                var cpyValueSpan = new Span<char>(value.ToCharArray());
+                for (int j = 0; j < cpyValueSpan.Length; j++)
                 {
-                    value = value.Replace('·', placeHolder).Replace('.', placeHolder).Replace('-', placeHolder).Replace(' ', placeHolder).Replace('&', placeHolder);
+                    if (!char.IsLetterOrDigit(cpyValueSpan[j]))
+                    {
+                        cpyValueSpan[j] = '_';
+                    }
                 }
+                value = cpyValueSpan.ToString();
                 values.Add(value);
             }
         }
+
+        Console.WriteLine($"{tableFile} init done.");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<string> GetEntries(string header)
+    public Span<string> GetRow(string header)
     {
         return CollectionsMarshal.AsSpan(_entries[header]);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<string> GetLine(int index)
+    {
+        var lines = new List<string>();
+        foreach (var (_, row) in _entries)
+        {
+            lines.Add(row[index]);
+        }
+        return CollectionsMarshal.AsSpan(lines);
     }
 
 }
