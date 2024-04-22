@@ -40,6 +40,12 @@ internal sealed class CharacterSkillTable : Table
         return CollectionsMarshal.AsSpan(levels);
     }
 
+    /// <returns>format (min, max)</returns>
+    public (int, int) GetSkillLevelInfoById(string skillId)
+    {
+        return _upgradeDesTable.GetLevelInfo(skillId);
+    }
+
     public Span<string> GetSkillsByCharacterId(string characterId)
     {
         var skills = _characterSkills[characterId];
@@ -94,7 +100,7 @@ internal sealed class CharacterSkillTable : Table
             return _upgradeDes[skillId].Item1;
         }
 
-        private (int, int) GetLevelInfo(string skillId)
+        public (int, int) GetLevelInfo(string skillId)
         {
             bool found = false;
             var minLevel = "-1";
