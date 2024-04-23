@@ -6,7 +6,7 @@ internal abstract class OffsetEntry
 {
 
     protected static readonly SearchValues<string> _defaultNamespaceSearchValues = SearchValues.Create(["::"], StringComparison.Ordinal);
-    private static readonly SearchValues<string> _defaultSearchValues = SearchValues.Create(["DO_APP_FUNC(", "DO_APP_FUNC_METHODINFO("], StringComparison.Ordinal);
+    private static readonly SearchValues<string> _defaultSearchValues = SearchValues.Create(["DO_APP_FUNC(", "DO_APP_FUNC_METHODINFO(", "DO_TYPEDEF("], StringComparison.Ordinal);
 
     public string Offset { get; set; } = string.Empty;
 
@@ -33,9 +33,9 @@ internal abstract class OffsetEntry
         {
             result = ParseFunctionEntry(content);
         }
-        else if (content.StartsWith("DO_APP_FUNC_METHODINFO("))
+        else if (content.StartsWith("DO_APP_FUNC_METHODINFO(") || content.StartsWith("DO_TYPEDEF("))
         {
-            result = ParseFunctionMethodInfoEntry(content);
+            result = ParseBaseInfoEntry(content);
         }
         if (result is null)
         {
@@ -75,11 +75,13 @@ internal abstract class OffsetEntry
         return entry;
     }
 
-    private static FunctionMethodInfoEntry ParseFunctionMethodInfoEntry(string content)
+    private static BaseInfoEntry ParseBaseInfoEntry(string content)
     {
-        var entry = new FunctionMethodInfoEntry();
+        var entry = new BaseInfoEntry();
         var contents = content.Split(',');
-        entry.Offset = contents[0].Replace("DO_APP_FUNC_METHODINFO(", "");
+        var header = contents[0];
+        entry.Header = header[..header.IndexOf('(')];
+        entry.Offset = contents[0].Replace($"{entry.Header}(", "");
         var name = contents[1];
         entry.Name = name[1..^2];
         return entry;

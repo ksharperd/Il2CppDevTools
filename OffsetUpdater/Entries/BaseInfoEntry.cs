@@ -1,23 +1,25 @@
 ﻿namespace OffsetUpdater.Entries;
 
-internal sealed class FunctionMethodInfoEntry : OffsetEntry
+internal sealed class BaseInfoEntry : OffsetEntry
 {
 
     public override bool NamespaceExists() => false;
 
     public override void FixNamespace() => throw new NotImplementedException();
 
+    public string Header = string.Empty;
+
     public override string ToString()
     {
-        return $"DO_APP_FUNC_METHODINFO({Offset}, {Name});";
+        return $"{Header}({Offset}, {Name});";
     }
 
-    public static bool operator ==(FunctionMethodInfoEntry left, FunctionMethodInfoEntry right)
+    public static bool operator ==(BaseInfoEntry left, BaseInfoEntry right)
     {
         return left.Name == right.Name;
     }
 
-    public static bool operator !=(FunctionMethodInfoEntry left, FunctionMethodInfoEntry right)
+    public static bool operator !=(BaseInfoEntry left, BaseInfoEntry right)
     {
         return !(left == right);
     }
@@ -34,7 +36,7 @@ internal sealed class FunctionMethodInfoEntry : OffsetEntry
             return true;
         }
 
-        if (obj is not FunctionMethodInfoEntry entry)
+        if (obj is not BaseInfoEntry entry)
         {
             return false;
         }
