@@ -14,7 +14,7 @@ internal class Table
     public readonly int RowCount;
     public readonly int LineCount;
 
-    public Table(string tableFile, string? requiredName)
+    public Table(string tableFile, string? requiredName, bool replaceInvalidChar = true)
     {
         if (!File.Exists(tableFile))
         {
@@ -59,11 +59,14 @@ internal class Table
                 ref var values = ref CollectionsMarshal.GetValueRefOrNullRef(_entries, headers[i])!;
                 var value = rawValues[i];
                 var cpyValueSpan = new Span<char>(value.ToCharArray());
-                for (int j = 0; j < cpyValueSpan.Length; j++)
+                if (replaceInvalidChar)
                 {
-                    if (!char.IsLetterOrDigit(cpyValueSpan[j]))
+                    for (int j = 0; j < cpyValueSpan.Length; j++)
                     {
-                        cpyValueSpan[j] = '_';
+                        if (!char.IsLetterOrDigit(cpyValueSpan[j]))
+                        {
+                            cpyValueSpan[j] = '_';
+                        }
                     }
                 }
                 value = cpyValueSpan.ToString();

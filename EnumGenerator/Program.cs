@@ -37,14 +37,20 @@ internal class Program
         // Enhance Skills
         var enhanceSkillTableFile = Path.Combine(tableDir, "Share", "Character", "EnhanceSkill", "EnhanceSkill.tab");
         var enhanceSkillPoolTableFile = Path.Combine(tableDir, "Client", "Character", "EnhanceSkill", "EnhanceSkillUpgradeDes.tab");
+        // Npc Model Map
+        var modelTableFile = Path.Combine(tableDir, "Client", "ResourceLut", "Model", "Model.tab");
+        var npcTableFile = Path.Combine(tableDir, "Share", "Fight", "Npc", "Npc", "Npc.tab");
+
         var output = args[1];
 
-        ThrowIfFileNotFound(characterTableFile);
-        ThrowIfFileNotFound(equipTableFile);
-        ThrowIfFileNotFound(fashionTableFile);
-        ThrowIfFileNotFound(weaponFashionTableFile);
-        ThrowIfFileNotFound(characterSkillTableFile);
-        ThrowIfFileNotFound(characterSkillPoolTableFile);
+        ThrowIfPathNotFound(characterTableFile);
+        ThrowIfPathNotFound(equipTableFile);
+        ThrowIfPathNotFound(fashionTableFile);
+        ThrowIfPathNotFound(weaponFashionTableFile);
+        ThrowIfPathNotFound(characterSkillTableFile);
+        ThrowIfPathNotFound(characterSkillPoolTableFile);
+        ThrowIfPathNotFound(modelTableFile);
+        ThrowIfPathNotFound(npcTableFile);
 
         var characterTable = new Table(characterTableFile, "StoryChapterId");
         var characterIds = characterTable.GetRow("Id");
@@ -89,6 +95,10 @@ internal class Program
         var enhanceSkillIds = CollectionsMarshal.AsSpan(enhanceSkillIdsList);
         var enhanceSkillNames = CollectionsMarshal.AsSpan(enhanceSkillNamesList);
 
+        var npcModelTable = new ModelTable(modelTableFile, npcTableFile);
+        var npcModelIds = CollectionsMarshal.AsSpan(npcModelTable.NpcModelMap.Keys.ToList());
+        var npcModelInfo = npcModelTable.GetModelInformationMap();
+
         var characterEnum = ConvertToCppEnum("Character", ref characterNames, ref characterIds);
         var equipEnum = ConvertToCppEnum("Equip", ref equipNames, ref equipIds);
         var fashionEnum = ConvertToCppEnum("Fashion", ref fashionNames, ref fashionIds);
@@ -96,23 +106,26 @@ internal class Program
         var characterSkillEnum = ConvertToCppEnum("CharacterSkill", ref characterSkillNames, ref characterSkillIds);
         var enhanceSkillEnum = ConvertToCppEnum("EnhanceSkill", ref enhanceSkillNames, ref enhanceSkillIds);
 
+        var npcModelMap = ConvertToCppMap("NpcModelMap", ref npcModelIds, ref npcModelInfo, valueClass: "std::vector<std::pair<std::string, std::string>>");
+
         using var writer = new StreamWriter(File.Open(output, FileMode.Create, FileAccess.Write, FileShare.Read), new UTF8Encoding(false), leaveOpen: false);
         WriteHeader(writer, characterEnum);
         WriteHeader(writer, equipEnum);
         WriteHeader(writer, fashionEnum);
         WriteHeader(writer, weaponFashionEnum);
         WriteHeader(writer, characterSkillEnum);
-        WriteHeader(writer, enhanceSkillEnum, false);
+        WriteHeader(writer, enhanceSkillEnum);
+        WriteHeader(writer, npcModelMap, false);
 
         Console.WriteLine($"Generate success.");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ThrowIfFileNotFound(string file)
+    private static void ThrowIfPathNotFound(string path)
     {
-        if (!File.Exists(file))
+        if (!Path.Exists(path))
         {
-            throw new FileNotFoundException("target table file not found.", file);
+            throw new IOException($"target path not found: {path}");
         }
     }
 
@@ -129,6 +142,21 @@ internal class Program
                 left = '_' + left;
             }
             stringBuilder.AppendLine($"\t{left} = {rightExp[i]},");
+        }
+        stringBuilder.Append("};");
+
+        Console.WriteLine($"Processed {name}");
+        return stringBuilder.ToString();
+    }
+
+    private static string ConvertToCppMap(string name, ref Span<string> keyExp, ref Span<string> valueExp, string keyClass = "uint32_t", string valueClass = "std::string")
+    {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine($"static const std::map<{keyClass}, {valueClass}> {name}\n{{");
+        var maxIndex = keyExp.Length;
+        for (var i = 0; i < maxIndex; i++)
+        {
+            stringBuilder.AppendLine($"\t{{{keyExp[i]}, {valueExp[i]}}},");
         }
         stringBuilder.Append("};");
 
