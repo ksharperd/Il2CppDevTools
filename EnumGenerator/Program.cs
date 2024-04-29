@@ -99,14 +99,23 @@ internal class Program
         var npcModelIds = CollectionsMarshal.AsSpan(npcModelTable.NpcModelMap.Keys.ToList());
         var npcModelInfo = npcModelTable.GetModelInformationMap();
 
+        var npcNames = npcModelTable.GetNpcNamesFixed();
+        var npcIds = npcModelTable.NpcTable.GetRow("Id");
+        foreach (var npcModelId in npcModelIds)
+        {
+            ref var npcName = ref npcNames[npcIds.IndexOf(npcModelId)];
+            npcModelIds.Replace(npcModelId, npcName);
+        }
+
         var characterEnum = ConvertToCppEnum("Character", ref characterNames, ref characterIds);
         var equipEnum = ConvertToCppEnum("Equip", ref equipNames, ref equipIds);
         var fashionEnum = ConvertToCppEnum("Fashion", ref fashionNames, ref fashionIds);
         var weaponFashionEnum = ConvertToCppEnum("WeaponFashion", ref weaponFashionNames, ref weaponFashionIds);
         var characterSkillEnum = ConvertToCppEnum("CharacterSkill", ref characterSkillNames, ref characterSkillIds);
         var enhanceSkillEnum = ConvertToCppEnum("EnhanceSkill", ref enhanceSkillNames, ref enhanceSkillIds);
+        var npcEnum = ConvertToCppEnum("Npc", ref npcNames, ref npcIds);
 
-        var npcModelMap = ConvertToCppMap("NpcModelMap", ref npcModelIds, ref npcModelInfo, valueClass: "std::vector<std::pair<std::string, std::string>>");
+        var npcModelMap = ConvertToCppMap("NpcModelMap", ref npcModelIds, ref npcModelInfo, "Npc", "std::vector<std::pair<std::string, std::string>>");
 
         using var writer = new StreamWriter(File.Open(output, FileMode.Create, FileAccess.Write, FileShare.Read), new UTF8Encoding(false), leaveOpen: false);
         WriteHeader(writer, characterEnum);
@@ -115,6 +124,7 @@ internal class Program
         WriteHeader(writer, weaponFashionEnum);
         WriteHeader(writer, characterSkillEnum);
         WriteHeader(writer, enhanceSkillEnum);
+        WriteHeader(writer, npcEnum);
         WriteHeader(writer, npcModelMap, false);
 
         Console.WriteLine($"Generate success.");
