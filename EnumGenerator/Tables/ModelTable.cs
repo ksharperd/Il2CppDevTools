@@ -54,7 +54,6 @@ internal sealed class ModelTable : Table
                 continue;
             }
 
-            var npcIdCnt = npcIds.Count;
             foreach (var npcId in npcIds)
             {
                 ref var npcModelInfoList = ref CollectionsMarshal.GetValueRefOrAddDefault(NpcModelMap, npcId, out var exists);
@@ -74,9 +73,9 @@ internal sealed class ModelTable : Table
     public Span<string> GetModelInformationMap()
     {
         List<string> infoList = [];
+        var line = new StringBuilder();
         foreach (var (_, modelInfo) in NpcModelMap)
         {
-            var line = new StringBuilder();
             line.Append('{');
             var infoCnt = modelInfo.Count;
             for (var i = 0; i < infoCnt; i++)
@@ -90,6 +89,7 @@ internal sealed class ModelTable : Table
             }
             line.Append('}');
             infoList.Add(line.ToString());
+            line.Length = 0;
         }
         return CollectionsMarshal.AsSpan(infoList);
     }
