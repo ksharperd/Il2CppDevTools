@@ -104,7 +104,7 @@ internal class Program
         foreach (var npcModelId in npcModelIds)
         {
             ref var npcName = ref npcNames[npcIds.IndexOf(npcModelId)];
-            npcModelIds.Replace(npcModelId, npcName);
+            npcModelIds.Replace(npcModelId, $"Npc::{npcName}");
         }
 
         var characterEnum = ConvertToCppEnum("Character", ref characterNames, ref characterIds);
@@ -149,7 +149,7 @@ internal class Program
             var left = leftExp[i];
             if (char.IsDigit(left[0]))
             {
-                left = '_' + left;
+                left = string.Concat("_", left);
             }
             stringBuilder.AppendLine($"\t{left} = {rightExp[i]},");
         }

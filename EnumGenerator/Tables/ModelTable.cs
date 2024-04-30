@@ -101,6 +101,10 @@ internal sealed class ModelTable : Table
         for (var i = 0; i < npcNames.Length;)
         {
             ref var npcName = ref npcNames[i];
+            if (!char.IsLetter(npcName[0]))
+            {
+                npcName = string.Concat("_", npcName); ;
+            }
             if (npcName.EndsWith("S_"))
             {
                 npcName = npcName.Replace("S_", "SS");
