@@ -147,7 +147,7 @@ internal class Program
         for (var i = 0; i < maxIndex; i++)
         {
             var left = leftExp[i];
-            if (char.IsDigit(left[0]))
+            if (!left[0].IsValidIdentifier(true))
             {
                 left = string.Concat("_", left);
             }

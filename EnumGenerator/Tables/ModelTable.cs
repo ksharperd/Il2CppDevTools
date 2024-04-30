@@ -101,13 +101,18 @@ internal sealed class ModelTable : Table
         for (var i = 0; i < npcNames.Length;)
         {
             ref var npcName = ref npcNames[i];
-            if (!char.IsLetter(npcName[0]))
+            if (!npcName[0].IsValidIdentifier(true))
             {
                 npcName = string.Concat("_", npcName); ;
             }
             if (npcName.EndsWith("S_"))
             {
                 npcName = npcName.Replace("S_", "SS");
+            }
+            // workaround: typo found in game data table :(
+            if (npcName.Contains("_自控怪）"))
+            {
+                npcName = npcName.Replace("_自控怪）", "（自控怪）");
             }
             if (npcName != ((i + 1) == npcNames.Length ? string.Empty : npcNames[i + 1]))
             {
