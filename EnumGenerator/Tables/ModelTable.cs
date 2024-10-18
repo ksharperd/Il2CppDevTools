@@ -36,7 +36,7 @@ internal sealed class ModelTable : Table
         {
             var line = NpcTable.GetLine(i);
             var npcId = line[0];
-            var npcModelId = line[11];
+            var npcModelId = line[13];
             npcModelId = CutModelId(npcModelId, out _);
             ref var npcIds = ref CollectionsMarshal.GetValueRefOrAddDefault(npcModelIdToNpcIdMap, npcModelId, out var exists);
             if (!exists)

@@ -10,6 +10,6 @@ Add the following sources to your nuget config.
 
 ```xml
   <packageSources>
-    <add key=".Net 9" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet9/nuget/v3/index.json" />
+    <add key="dotnet10" value="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json" />
   </packageSources>
 ```
