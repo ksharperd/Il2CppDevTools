@@ -101,7 +101,7 @@ internal class Program
         foreach (var enumType in _neededEnums)
         {
             var isSystem = enumType.Namespace.StartsWith("System");
-            proto.Append($"public enum {(isSystem ? enumType.CSharpName : _neededClassesNames[enumType])}\n{{\n");
+            proto.Append($"public enum {(isSystem ? FixEnumName(enumType.FullName) : _neededClassesNames[enumType])}\n{{\n");
 
             var enumNames = enumType.GetEnumNames();
             var enumValues = enumType.GetEnumValues();
@@ -195,12 +195,7 @@ internal class Program
     {
         if (type.ElementType is { } elementType)
         {
-            return type.CSharpName.Replace(elementType.CSharpName, GetMappedTypeName(elementType));
-        }
-
-        if (type.IsEnum && !isSystem)
-        {
-            return type.FullName.Replace('+', '_').Replace('.', '_');
+            return type.CSharpName.Replace(elementType.CSharpName, GetMappedTypeName(elementType, isSystem));
         }
 
         var genericArguments = type.GetGenericArguments();
@@ -209,7 +204,7 @@ internal class Program
             var mappedGenericArgumentNames = new List<string>();
             foreach (var genericParameter in genericArguments)
             {
-                mappedGenericArgumentNames.Add(GetMappedTypeName(genericParameter));
+                mappedGenericArgumentNames.Add(GetMappedTypeName(genericParameter, isSystem));
             }
             var index = 0;
             var count = mappedGenericArgumentNames.Count;
@@ -235,12 +230,27 @@ internal class Program
             return mappedNameBuilder.ToString();
         }
 
+        if (type.IsEnum)
+        {
+            return FixEnumName(type.FullName);
+        }
+
+        if (isSystem)
+        {
+            return type.CSharpName;
+        }
+
         if (_declaredTypes.Contains(type))
         {
             return type.CSharpName;
         }
 
         return "dynamic";
+    }
+
+    private static string FixEnumName(string enumName)
+    {
+        return enumName.Replace('+', '_').Replace('.', '_');
     }
 
 }
