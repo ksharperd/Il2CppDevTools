@@ -1,5 +1,8 @@
 <Solution>
-  <Project Path="EnumGenerator\EnumGenerator.csproj" Type="Classic C#" />
+  <Project Path="deps\Il2CppInspectorRedux\Bin2Object\Bin2Object\Bin2Object.csproj" Id="4a46121c-7191-48e6-af64-a8e5eb38e26f" />
+  <Project Path="deps\Il2CppInspectorRedux\Il2CppInspector.Common\Il2CppInspector.csproj" Id="9665d4e5-0250-4234-8db6-9e6ec119cc22" />
+  <Project Path="EnumGenerator\EnumGenerator.csproj" />
   <Project Path="OffsetUpdater\OffsetUpdater.csproj" />
   <Project Path="TableConverter\TableConverter.csproj" />
+  <Project Path="TypeGenerator\TypeGenerator.csproj" />
 </Solution>
