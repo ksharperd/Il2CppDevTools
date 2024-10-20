@@ -1,0 +1,4 @@
+[submodule "deps/Il2CppInspectorRedux"]
+	path = deps/Il2CppInspectorRedux
+	url = https://github.com/LukeFZ/Il2CppInspectorRedux.git
+	branch = master
