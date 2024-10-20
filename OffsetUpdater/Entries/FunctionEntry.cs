@@ -14,7 +14,7 @@ internal sealed class FunctionEntry : OffsetEntry
     private bool _hasNamespaceInArgs = false;
     private List<string>? _namespacesReturnType;
     private List<string>? _namespacesArgs;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     public override bool NamespaceExists()
     {

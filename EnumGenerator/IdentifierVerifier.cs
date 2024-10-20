@@ -5,8 +5,8 @@ namespace EnumGenerator;
 internal static class IdentifierVerifier
 {
 
-    private static List<Range> _standardRanges = null!;
-    private static List<Range> _noLeadingRanges = null!;
+    private static readonly List<Range> _standardRanges;
+    private static readonly List<Range> _noLeadingRanges;
 
     static IdentifierVerifier()
     {
