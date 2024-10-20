@@ -72,6 +72,9 @@ internal partial class Program
             if (renameOnly)
             {
                 File.Copy(rawTableFile, newFilename, true);
+                var allLines = File.ReadAllLines(newFilename).Where(line => !string.IsNullOrWhiteSpace(line));
+                File.WriteAllLines(newFilename, allLines);
+                Console.WriteLine($"Processed {rawTableFile}");
                 continue;
             }
 
