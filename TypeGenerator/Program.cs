@@ -166,7 +166,7 @@ internal class Program
             mappedTypeName = nameRef;
         }
 
-        builder?.Append($"    public {mappedTypeName} {info.Name} {{ get; set; }}\n");
+        builder.Append($"    public {mappedTypeName} {info.Name} {{ get; set; }}\n");
     }
 
     private static void AnalyseDependencies(TypeInfo type)
